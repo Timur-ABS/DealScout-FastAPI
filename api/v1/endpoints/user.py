@@ -41,13 +41,13 @@ async def create_user_session(db, user_id):
     return session
 
 
-@router.get("/{user_id}", response_model=UserSchema)
-async def read_user(user_id: int, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(users).where(users.c.id == user_id))
-    user = result.fetchone()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user
+async def check_session(db, session):
+    result = await db.execute(select(sessions).where(sessions.c.session == session).where(
+        sessions.c.time_start >= time.time() - 24 * 60 * 60))
+    result = result.fetchone()
+    await db.execute(update(sessions).where(sessions.c.session == session).values(time_start=time.time()))
+    await db.commit()
+    return result
 
 
 async def generate_unique_code(db: AsyncSession, length=8):
@@ -60,6 +60,26 @@ async def generate_unique_code(db: AsyncSession, length=8):
 
         if not user:
             return my_code
+
+
+@router.get("/{ses}")
+async def read_user(ses: str, db: AsyncSession = Depends(get_db)):
+    session_in_db = await check_session(db=db, session=ses)
+    if not session_in_db:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+    result = await db.execute(select(users).where(users.c.id == session_in_db.user_id))
+    user_in_db = result.fetchone()
+    data = {'login': user_in_db.login,
+            'my_code': user_in_db.my_code,
+            'referral_code': user_in_db.referral_code,
+            'mailing': user_in_db.mailing}
+    try:
+        with open(user_in_db.photo) as photo:
+            data["photo"] = photo
+            return data
+    except:
+        data["photo"] = "no photo"
+        return data
 
 
 @router.post("/registration", response_model=Dict[str, str], status_code=status.HTTP_201_CREATED)
@@ -162,15 +182,6 @@ async def reset(user: UserReset, db: AsyncSession = Depends(get_db)):
             "user_session": session}
 
 
-async def check_session(db, session):
-    result = await db.execute(select(sessions).where(sessions.c.session == session).where(
-        sessions.c.time_start >= time.time() - 24 * 60 * 60))
-    result = result.fetchone()
-    await db.execute(update(sessions).where(sessions.c.session == session).values(time_start=time.time()))
-    await db.commit()
-    return result
-
-
 @router.post("/change_login", response_model=dict)
 async def change_login(user: UserChangeLogin, db: AsyncSession = Depends(get_db)):
     session_in_db = await check_session(db=db, session=user.user_session)
@@ -188,7 +199,7 @@ async def change_photo(ses: str, image: UploadFile = File(...), db: AsyncSession
     if not session_in_db:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
     try:
-        file_location = f"images/{session_in_db.user_id}.{image.filename.split('.')[1]}"
+        file_location = f"images/{session_in_db.user_id}.{image.filename.split('.')[-1]}"
         with open(file_location, "wb+") as file_object:
             shutil.copyfileobj(image.file, file_object)
         await db.execute(update(users).where(users.c.id == session_in_db.user_id).values(photo=file_location))

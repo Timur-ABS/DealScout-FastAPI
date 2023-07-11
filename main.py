@@ -2,8 +2,16 @@ from fastapi import FastAPI
 from api.v1.endpoints import user
 from db.base import create_tables
 from api.v1.endpoints import deals
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Разрешить любые источники
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.on_event("startup")
