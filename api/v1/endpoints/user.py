@@ -1,19 +1,24 @@
 import uuid
 import secrets
+import base64
 import os
 import shutil
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
-from sqlalchemy import select, insert, or_, update
+from sqlalchemy import select, insert, or_, update, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.base import SessionLocal
 from db.models.user import users
 from db.models.sessions import sessions
 from db.models.reset_password import reset_password
-from schemas.user import User as UserSchema, UserCreate, UserLogin, UserReset, UserChangeLogin, UserChangePhoto
+from db.models.plans import plans
+from schemas.user import User as UserSchema, UserCreate, UserLogin, UserReset, UserChangeLogin, UserAddPlan
 import time
 import random
 import string
 from typing import Dict
+import time
+from datetime import datetime, time as dt_time
+from time import mktime
 
 router = APIRouter()
 
@@ -42,8 +47,8 @@ async def create_user_session(db, user_id):
 
 
 async def check_session(db, session):
-    result = await db.execute(select(sessions).where(sessions.c.session == session).where(
-        sessions.c.time_start >= time.time() - 24 * 60 * 60))
+    result = await db.execute(select(sessions).where(
+        and_(sessions.c.session == session, sessions.c.time_start >= time.time() - 24 * 60 * 60)))
     result = result.fetchone()
     await db.execute(update(sessions).where(sessions.c.session == session).values(time_start=time.time()))
     await db.commit()
@@ -74,8 +79,9 @@ async def read_user(ses: str, db: AsyncSession = Depends(get_db)):
             'referral_code': user_in_db.referral_code,
             'mailing': user_in_db.mailing}
     try:
-        with open(user_in_db.photo) as photo:
-            data["photo"] = photo
+        with open(user_in_db.photo, "rb") as photo:
+            photo_encoded = base64.b64encode(photo.read()).decode('utf-8')
+            data["photo"] = photo_encoded
             return data
     except:
         data["photo"] = "no photo"
@@ -223,3 +229,34 @@ async def change_mailing(ses: str, db: AsyncSession = Depends(get_db)):
     await db.execute(update(users).where(users.c.id == session_in_db.user_id).values(mailing=value))
     await db.commit()
     return {"message": 'updated'}
+
+
+async def start_of_day_timestamp():
+    now = datetime.now().date()
+    start_of_day = datetime.combine(now, dt_time())
+    return int(mktime(start_of_day.timetuple()))
+
+
+@router.post("/add_plan", response_model=dict)
+async def add_plan(plan: UserAddPlan, db: AsyncSession = Depends(get_db)):
+    session_in_db = await check_session(db=db, session=plan.session)
+
+    if not session_in_db:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+    places = {1: 13,
+              2: 10,
+              3: 7}
+    for group in range(1, 99):
+        result = await db.execute(
+            select(plans).where(and_(plans.c.plan_id == plan.plan_id,
+                                     plans.c.end_time >= time.time()
+                                     )))
+        if len(result.fetchall()) < places.get(plan.plan_id):
+            start = await start_of_day_timestamp()
+            await db.execute(
+                plans.insert().values(plan_id=plan.plan_id, group=group, user_id=session_in_db.user_id,
+                                      buy_time=start,
+                                      end_time=start + 30 * 24 * 60 * 60))
+            await db.commit()
+            return {"message": "success"}
+    return {"message": "go to support"}

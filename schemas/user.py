@@ -65,3 +65,14 @@ class UserChangeLogin(BaseModel):
 
 class UserChangePhoto(BaseModel):
     user_session: str
+
+
+class UserAddPlan(BaseModel):
+    session: str
+    plan_id: int
+
+    @validator('plan_id')
+    def check(cls, v):
+        if 1 <= v <= 3:
+            return v
+        raise ValueError("Wrong new_login format, too long")
