@@ -59,7 +59,7 @@ async def add_deal(ses: str, day: int = Form(...), shop_price: float = Form(...)
     session_in_db = await check_session(db=db, session=ses)
     if not session_in_db:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
-    if session_in_db.user_id != 1:
+    if session_in_db.user_id != 1 and session_in_db.user_id != 4:
         return {"error": "You don't have enough permissions"}
     try:
         time_stam = await start_of_day_timestamp() + day * 24 * 3600
