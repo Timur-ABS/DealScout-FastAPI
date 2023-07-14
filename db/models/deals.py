@@ -8,6 +8,7 @@ deals = Table(
     Column("day", Integer),  # time_stamp начало дня
     Column("shop_price", Integer),  # Умноженное на сто
     Column("amazon_price", Integer),  # Умноженное на сто
+    Column("category", String(1024)),
     Column("photo", String(1024)),
     Column("shop_name", String(1024)),
     Column("shop_link", String(1024)),

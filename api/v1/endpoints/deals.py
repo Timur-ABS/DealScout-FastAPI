@@ -17,6 +17,7 @@ from fastapi.responses import FileResponse
 import os
 from datetime import datetime, time as dt_time
 from time import mktime
+import datetime
 import random
 import string
 from typing import Dict
@@ -50,7 +51,8 @@ async def start_of_day_timestamp():
 
 @router.post("/add/{ses}", response_model=dict)
 async def add_deal(ses: str, day: int = Form(...), shop_price: float = Form(...), amazon_price: float = Form(...),
-                   shop_name: str = Form(...), shop_link: str = Form(...), amazon_link: str = Form(...),
+                   category: str = Form(...), shop_name: str = Form(...), shop_link: str = Form(...),
+                   amazon_link: str = Form(...),
                    plan_id: int = Form(...), group_number: int = Form(...), roi: str = Form(...),
                    net_profit: str = Form(...), bsr_percent: str = Form(...), fba_seller: str = Form(...),
                    fbm_seller: str = Form(...), est_monthly_sale: str = Form(...), asin: str = Form(...),
@@ -70,7 +72,7 @@ async def add_deal(ses: str, day: int = Form(...), shop_price: float = Form(...)
                 "roi": roi, "net_profit": net_profit, "bsr_percent": bsr_percent,
                 "fba_seller": fba_seller, "fbm_seller": fbm_seller,
                 "est_monthly_sale": est_monthly_sale, "asin": asin, "brs_rank": brs_rank,
-                "upc_ean": upc_ean, "restriction_check": restriction_check}
+                "category": category, "upc_ean": upc_ean, "restriction_check": restriction_check}
         result = await db.execute(insert(deals).values(**deal).returning(deals))  # insert deal to the database
         created_deal = result.fetchone()
         file_location = f"images/{time_stam}_{plan_id}_{group_number}_{created_deal.id}.{image.filename.split('.')[1]}"
@@ -121,6 +123,7 @@ async def look_deal(need_deal: DealLook, db: AsyncSession = Depends(get_db)):
             deal_info = {
                 'id': deal.id,
                 'day': deal.day,
+                'day_beautiful': datetime.datetime.fromtimestamp(deal.day).strftime('%d/%m/%Y'),
                 'shop_price': deal.shop_price,
                 'amazon_price': deal.amazon_price,
                 'photo': deal.photo,
@@ -136,6 +139,7 @@ async def look_deal(need_deal: DealLook, db: AsyncSession = Depends(get_db)):
                 'fbm_seller': deal.fbm_seller,
                 'est_monthly_sale': deal.est_monthly_sale,
                 'asin': deal.asin,
+                'category': deal.category,
                 'brs_rank': deal.brs_rank,
                 'upc_ean': deal.upc_ean,
                 'restriction_check': deal.restriction_check
