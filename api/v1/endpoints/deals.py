@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from db.base import SessionLocal
 from db.models.user import users
 from schemas.deal import DealLook
+import datetime as ddd
 from db.models.sessions import sessions
 from db.models.deals import deals
 from db.models.plans import plans
@@ -122,7 +123,7 @@ async def look_deal(need_deal: DealLook, db: AsyncSession = Depends(get_db)):
             deal_info = {
                 'id': deal.id,
                 'day': deal.day,
-                'day_beautiful': datetime.datetime.fromtimestamp(deal.day).strftime('%d/%m/%Y'),
+                'day_beautiful': ddd.datetime.fromtimestamp(deal.day).strftime('%d/%m/%Y'),
                 'shop_price': deal.shop_price,
                 'amazon_price': deal.amazon_price,
                 'photo': deal.photo,
