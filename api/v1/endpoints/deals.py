@@ -17,7 +17,6 @@ from fastapi.responses import FileResponse
 import os
 from datetime import datetime, time as dt_time
 from time import mktime
-import datetime
 import random
 import string
 from typing import Dict
