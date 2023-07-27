@@ -1,7 +1,4 @@
 from pydantic import BaseModel, validator, Field
-from fastapi import FastAPI, File
-
-import re
 
 
 class DealLook(BaseModel):
@@ -25,3 +22,7 @@ class DealLook(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class DownloadDeal(BaseModel):
+    session: str
