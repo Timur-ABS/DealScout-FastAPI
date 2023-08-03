@@ -240,20 +240,16 @@ async def download_all_deals(ses: DownloadDeal, db: AsyncSession = Depends(get_d
         tmp_path = tmp.name  # Store temporary file path
 
     try:
-        # Create a BytesIO buffer and read the temporary file into it
-        with io.BytesIO() as buf:
+        def iterfile():
             with open(tmp_path, 'rb') as f:
-                buf.write(f.read())
-            buf.seek(0)
+                yield from f
 
-            # Return the buffer contents as a FileResponse
-            return FileResponse(
-                buf,
-                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                filename="deals.xlsx"
-            )
+        return StreamingResponse(iterfile(),
+                                 media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                 headers={"Content-Disposition": "attachment; filename=deals.xlsx"})
     finally:
         os.remove(tmp_path)  # Make sure the temp file gets deleted
+
 
 @router.get("/photos/{photo_path:path}")
 async def read_item(photo_path: str):
