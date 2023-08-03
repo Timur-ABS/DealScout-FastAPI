@@ -232,23 +232,18 @@ async def download_all_deals(ses: DownloadDeal, db: AsyncSession = Depends(get_d
             }
             all_deals.append(deal_info)
 
-    df = pd.DataFrame(all_deals)
+    df = pd.DataFrame(deals)
 
-    # Save DataFrame to a temporary file
     with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as tmp:
         df.to_excel(tmp.name, index=False)
-        tmp_path = tmp.name  # Store temporary file path
+        tmp_path = tmp.name
 
-    try:
-        def iterfile():
-            with open(tmp_path, 'rb') as f:
-                yield from f
-
-        return StreamingResponse(iterfile(),
-                                 media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                                 headers={"Content-Disposition": "attachment; filename=deals.xlsx"})
-    finally:
-        os.remove(tmp_path)  # Make sure the temp file gets deleted
+    return FileResponse(
+        path=tmp_path,
+        filename="deals.xlsx",
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=deals.xlsx"},
+    )
 
 
 @router.get("/photos/{photo_path:path}")
