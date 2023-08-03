@@ -226,9 +226,9 @@ async def download_all_deals(ses: DownloadDeal, db: AsyncSession = Depends(get_d
     fd, path = tempfile.mkstemp(suffix=".xlsx")
 
     try:
-        with os.fdopen(fd, 'w') as tmp:
+        with os.fdopen(fd, 'wb') as tmp:
             # Записываем датафрейм в Excel-файл
-            df.to_excel(tmp.name, index=False)
+            df.to_excel(tmp, index=False)
 
         # Возвращаем файл как FileResponse
         return FileResponse(path, media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
