@@ -10,6 +10,8 @@ from db.models.deals import deals
 from db.models.plans import plans
 import time
 import os
+import tempfile
+import io
 from datetime import datetime, time as dt_time
 from time import mktime
 import pandas as pd
@@ -223,20 +225,27 @@ async def download_all_deals(ses: DownloadDeal, db: AsyncSession = Depends(get_d
             all_deals.append(deal_info)
 
     df = pd.DataFrame(all_deals)
-    fd, path = tempfile.mkstemp(suffix=".xlsx")
+
+    # Save DataFrame to a temporary file
+    with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as tmp:
+        df.to_excel(tmp.name, index=False)
+        tmp_path = tmp.name  # Store temporary file path
 
     try:
-        with os.fdopen(fd, 'wb') as tmp:
-            # Записываем датафрейм в Excel-файл
-            df.to_excel(tmp, index=False)
+        # Create a BytesIO buffer and read the temporary file into it
+        with io.BytesIO() as buf:
+            with open(tmp_path, 'rb') as f:
+                buf.write(f.read())
+            buf.seek(0)
 
-        # Возвращаем файл как FileResponse
-        return FileResponse(path, media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                            filename="deals.xlsx")
-
+            # Return the buffer contents as a FileResponse
+            return FileResponse(
+                buf,
+                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                filename="deals.xlsx"
+            )
     finally:
-        os.remove(path)  # удаляем файл после использования
-
+        os.remove(tmp_path)  # Make sure the temp file gets deleted
 
 @router.get("/photos/{photo_path:path}")
 async def read_item(photo_path: str):
