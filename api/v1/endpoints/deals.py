@@ -232,7 +232,7 @@ async def download_all_deals(ses: DownloadDeal, db: AsyncSession = Depends(get_d
             }
             all_deals.append(deal_info)
 
-    df = pd.DataFrame(deals)
+    df = pd.DataFrame(all_deals)
 
     with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as tmp:
         df.to_excel(tmp.name, index=False)
