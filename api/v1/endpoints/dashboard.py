@@ -9,6 +9,7 @@ from db.models.plans import plans
 from db.models.profit_days import profit_days
 import time
 from sqlmodel import select
+from sqlalchemy import or_
 from datetime import datetime
 from fastapi.responses import FileResponse
 import pandas as pd
@@ -59,14 +60,14 @@ async def sea_my_plans(ses: SeaMyPLan, db: AsyncSession = Depends(get_db)):
                                 'end_time': dt_object.strftime("%d-%m-%Y")})
 
 
-@router.post('fill_profit_day_{day}_{profit}')
+@router.post('/fill_profit_day_{day}_{profit}')
 async def fill_profit_day(day: int, profit: float, ses: ProfitDay, db: AsyncSession = Depends(get_db)):
     session_in_db = await check_session(db=db, session=ses.session)
     if not session_in_db:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
     if session_in_db.user_id != 1:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Incorrect user")
-    d = await start_of_day_timestamp() + day * 24 * 60
+    d = await start_of_day_timestamp() + day * 24 * 60 * 60
     result = await db.execute(select(profit_days).where(profit_days.c.time_stamp_day == d))
     if result.fetchone():
         await db.execute(update(profit_days)
@@ -88,7 +89,10 @@ async def profit_day(ses: ProfitDay, db: AsyncSession = Depends(get_db)):
     yesterday = today - 24 * 60 * 60
     result = await db.execute(
         select(profit_days).where(
-            (profit_days.c.time_stamp_day == today) or (profit_days.c.time_stamp_day == yesterday)))
+            or_(profit_days.c.time_stamp_day == today, profit_days.c.time_stamp_day == yesterday)
+        )
+    )
+
     days = result.fetchall()
     result = {
         'today': {'profit': days[1].profit / 100,

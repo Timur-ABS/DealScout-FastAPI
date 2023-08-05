@@ -12,4 +12,11 @@ dt_object = datetime.fromtimestamp(timestamp)
 print(dt_object.strftime("%d-%m-%Y, %A"))
 print(dt_object.strftime("%d-%m-%Y"))
 
+from datetime import datetime, time as dt_time
+from time import mktime
 
+def start_of_day_timestamp():
+    now = datetime.now().date()
+    start_of_day = datetime.combine(now, dt_time())
+    return int(mktime(start_of_day.timetuple()))
+print(start_of_day_timestamp())
