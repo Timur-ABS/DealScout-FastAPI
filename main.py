@@ -4,6 +4,7 @@ from db.base import create_tables
 from api.v1.endpoints import deals
 from api.v1.endpoints import dashboard
 from fastapi.middleware.cors import CORSMiddleware
+from api.v1.endpoints import favorite_deals
 
 app = FastAPI()
 app.add_middleware(
@@ -28,3 +29,4 @@ async def startup():
 app.include_router(user.router, prefix="/user", tags=["user"])
 app.include_router(deals.router, prefix="/deal", tags=["deal"])
 app.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
+app.include_router(favorite_deals.router, prefix="favorite_deals", tags=["favorite_deals"])

@@ -9,7 +9,7 @@ SessionLocal = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
 metadata = MetaData()
 
-from .models import deals, plans, reset_password, sessions, user, profit_days
+from .models import deals, plans, reset_password, sessions, user, profit_days, favorite_deals
 
 
 # Создание таблиц при первом запуске
