@@ -29,4 +29,4 @@ async def startup():
 app.include_router(user.router, prefix="/user", tags=["user"])
 app.include_router(deals.router, prefix="/deal", tags=["deal"])
 app.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
-app.include_router(favorite_deals.router, prefix="favorite_deals", tags=["favorite_deals"])
+app.include_router(favorite_deals.router, prefix="/favorite_deals", tags=["favorite_deals"])
