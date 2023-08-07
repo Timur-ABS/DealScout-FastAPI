@@ -8,6 +8,7 @@ import datetime as ddd
 from db.models.sessions import sessions
 from db.models.deals import deals
 from db.models.plans import plans
+from db.models.favorite_deals import favorite_deals
 import time
 from sqlmodel import select
 import os
@@ -112,7 +113,11 @@ async def look_deal(need_deal: DealLook, db: AsyncSession = Depends(get_db)):
                 deals.c.day >= today - back.get(need_deal.time)
             )))
         our_deals = result.fetchall()
+
         for deal in our_deals:
+            result = await db.execute(
+                select(favorite_deals).where(and_(favorite_deals.c.user_id == session_in_db.user_id,
+                                                  favorite_deals.c.deal_id == deal.id)))
             deal_info = {
                 'id': deal.id,
                 'day': deal.day,
@@ -135,7 +140,8 @@ async def look_deal(need_deal: DealLook, db: AsyncSession = Depends(get_db)):
                 'category': deal.category,
                 'brs_rank': deal.brs_rank,
                 'upc_ean': deal.upc_ean,
-                'restriction_check': deal.restriction_check
+                'restriction_check': deal.restriction_check,
+                'favorite': result.fetchone() is not None
             }
             answer['deals'].append(deal_info)
     return answer
