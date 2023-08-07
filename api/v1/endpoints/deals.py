@@ -44,7 +44,8 @@ async def start_of_day_timestamp():
 
 
 @router.post("/add/{ses}", response_model=dict)
-async def add_deal(ses: str, day: int = Form(...), shop_price: float = Form(...), amazon_price: float = Form(...),
+async def add_deal(ses: str, day: int = Form(...), product_name: str = Form(...), shop_price: float = Form(...),
+                   amazon_price: float = Form(...),
                    category: str = Form(...), shop_name: str = Form(...), shop_link: str = Form(...),
                    amazon_link: str = Form(...),
                    plan_id: int = Form(...), group_number: int = Form(...), roi: str = Form(...),
@@ -60,6 +61,7 @@ async def add_deal(ses: str, day: int = Form(...), shop_price: float = Form(...)
     try:
         time_stam = await start_of_day_timestamp() + day * 24 * 3600
         deal = {"day": time_stam, "shop_price": int(round(shop_price, 2) * 100),
+                "product_name": product_name,
                 "amazon_price": int(round(amazon_price, 2) * 100),
                 "photo": "None", "shop_name": shop_name, "shop_link": shop_link,
                 "amazon_link": amazon_link, "plan_id": plan_id, "group_number": group_number,
@@ -125,6 +127,7 @@ async def look_deal(need_deal: DealLook, db: AsyncSession = Depends(get_db)):
                 'shop_price': deal.shop_price,
                 'amazon_price': deal.amazon_price,
                 'photo': deal.photo,
+                'product_name': deal.product_name,
                 'shop_name': deal.shop_name,
                 'shop_link': deal.shop_link,
                 'amazon_link': deal.amazon_link,

@@ -5,6 +5,7 @@ deals = Table(
     "deals",
     metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
+    Column("product_name", String(1024)),
     Column("day", Integer),  # time_stamp начало дня
     Column("shop_price", Integer),  # Умноженное на сто
     Column("amazon_price", Integer),  # Умноженное на сто
