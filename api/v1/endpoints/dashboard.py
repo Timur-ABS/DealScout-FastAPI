@@ -58,7 +58,7 @@ async def sea_my_plans(ses: SeaMyPLan, db: AsyncSession = Depends(get_db)):
         dt_object = datetime.fromtimestamp(plan.end_time)
         result["plans"].append({'plan_id': plan.plan_id,
                                 'end_time': dt_object.strftime("%d-%m-%Y")})
-
+    return result
 
 @router.post('/fill_profit_day_{day}_{profit}')
 async def fill_profit_day(day: int, profit: float, ses: ProfitDay, db: AsyncSession = Depends(get_db)):
