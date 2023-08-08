@@ -56,7 +56,7 @@ async def add_deal(ses: str, day: int = Form(...), product_name: str = Form(...)
     session_in_db = await check_session(db=db, session=ses)
     if not session_in_db:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
-    if session_in_db.user_id != 1 and session_in_db.user_id != 4:
+    if session_in_db.user_id != 1:
         return {"error": "You don't have enough permissions"}
     try:
         time_stam = await start_of_day_timestamp() + day * 24 * 3600
@@ -71,7 +71,7 @@ async def add_deal(ses: str, day: int = Form(...), product_name: str = Form(...)
                 "category": category, "upc_ean": upc_ean, "restriction_check": restriction_check}
         result = await db.execute(insert(deals).values(**deal).returning(deals))  # insert deal to the database
         created_deal = result.fetchone()
-        file_location = f"images/{time_stam}_{plan_id}_{group_number}_{created_deal.id}.{image.filename.split('.')[1]}"
+        file_location = f"images/{time_stam}_{plan_id}_{group_number}_{created_deal.id}.{image.filename.split('.')[-1]}"
         await db.execute(update(deals).where(deals.c.id == created_deal.id).values(photo=file_location))
         await db.commit()
         with open(file_location, "wb+") as file_object:
@@ -120,6 +120,9 @@ async def look_deal(need_deal: DealLook, db: AsyncSession = Depends(get_db)):
             result = await db.execute(
                 select(favorite_deals).where(and_(favorite_deals.c.user_id == session_in_db.user_id,
                                                   favorite_deals.c.deal_id == deal.id)))
+            f = True
+            if result.fetchone() is None:
+                f = False
             deal_info = {
                 'id': deal.id,
                 'day': deal.day,
@@ -144,7 +147,7 @@ async def look_deal(need_deal: DealLook, db: AsyncSession = Depends(get_db)):
                 'brs_rank': deal.brs_rank,
                 'upc_ean': deal.upc_ean,
                 'restriction_check': deal.restriction_check,
-                'favorite': result.fetchone() is not None
+                'favorite': f
             }
             answer['deals'].append(deal_info)
     return answer

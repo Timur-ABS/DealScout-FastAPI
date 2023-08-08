@@ -97,8 +97,35 @@ async def favorite_deal_list(ses: FavoriteDealList, db: AsyncSession = Depends(g
     if not session_in_db:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
     deal_list = []
-    result = await db.execute(select(favorite_deals).where(favorite_deals.c.user_id == session_in_db.usser_id))
+    result = await db.execute(select(favorite_deals).where(favorite_deals.c.user_id == session_in_db.user_id))
     for elem in result.fetchall():
         deal = await db.execute(select(deals).where(deals.c.id == elem.deal_id))
-        deal_list.append(deal.fetchone())
+        deal = deal.fetchone()
+        deal_info = {
+            'id': deal.id,
+            'day': deal.day,
+            'day_beautiful': ddd.datetime.fromtimestamp(deal.day).strftime('%d/%m/%Y'),
+            'shop_price': deal.shop_price,
+            'amazon_price': deal.amazon_price,
+            'photo': deal.photo,
+            'product_name': deal.product_name,
+            'shop_name': deal.shop_name,
+            'shop_link': deal.shop_link,
+            'amazon_link': deal.amazon_link,
+            'plan_id': deal.plan_id,
+            'group_number': deal.group_number,
+            'roi': deal.roi,
+            'net_profit': deal.net_profit,
+            'bsr_percent': deal.bsr_percent,
+            'fba_seller': deal.fba_seller,
+            'fbm_seller': deal.fbm_seller,
+            'est_monthly_sale': deal.est_monthly_sale,
+            'asin': deal.asin,
+            'category': deal.category,
+            'brs_rank': deal.brs_rank,
+            'upc_ean': deal.upc_ean,
+            'restriction_check': deal.restriction_check,
+            'favorite': result.fetchone() is not None
+        }
+        deal_list.append(deal_info)
     return {result: deal_list}
