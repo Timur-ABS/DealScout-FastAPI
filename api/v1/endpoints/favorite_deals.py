@@ -68,7 +68,7 @@ async def add_favorite_deal(need_deal: FavoriteDeal, db: AsyncSession = Depends(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
 
     if await can_add(db, session_in_db.user_id, need_deal.deal_id):
-        if await deal_exists(db, session_in_db.user_id, need_deal.deal_id):
+        if not await deal_exists(db, session_in_db.user_id, need_deal.deal_id):
             await db.execute(favorite_deals.insert().values(user_id=session_in_db.user_id, deal_id=need_deal.deal_id))
             await db.commit()
             return {'message': 'success'}
@@ -125,7 +125,7 @@ async def favorite_deal_list(ses: FavoriteDealList, db: AsyncSession = Depends(g
             'brs_rank': deal.brs_rank,
             'upc_ean': deal.upc_ean,
             'restriction_check': deal.restriction_check,
-            'favorite': result.fetchone() is not None
+            'favorite': True
         }
         deal_list.append(deal_info)
-    return {result: deal_list}
+    return {'result': deal_list}

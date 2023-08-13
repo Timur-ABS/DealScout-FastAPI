@@ -45,6 +45,21 @@ async def start_of_day_timestamp():
     return int(mktime(start_of_day.timetuple()))
 
 
+@router.post("/my_active_plans")
+async def sea_my_plans(ses: SeaMyPLan, db: AsyncSession = Depends(get_db)):
+    session_in_db = await check_session(db=db, session=ses.session)
+    if not session_in_db:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+    result = await db.execute(select(plans).where(and_(plans.c.user_id == session_in_db.user_id,
+                                                       plans.c.end_time > int(time.time()))))
+
+    our_plans = result.fetchall()
+    result = {}
+    for plan in our_plans:
+        result["plans"].append({'plan_id': plan.plan_id})
+    return result
+
+
 @router.post("/my_plans")
 async def sea_my_plans(ses: SeaMyPLan, db: AsyncSession = Depends(get_db)):
     session_in_db = await check_session(db=db, session=ses.session)
@@ -59,6 +74,7 @@ async def sea_my_plans(ses: SeaMyPLan, db: AsyncSession = Depends(get_db)):
         result["plans"].append({'plan_id': plan.plan_id,
                                 'end_time': dt_object.strftime("%d-%m-%Y")})
     return result
+
 
 @router.post('/fill_profit_day_{day}_{profit}')
 async def fill_profit_day(day: int, profit: float, ses: ProfitDay, db: AsyncSession = Depends(get_db)):
