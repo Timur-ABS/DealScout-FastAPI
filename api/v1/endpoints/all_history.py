@@ -42,6 +42,7 @@ async def all_history(ses: SeaMyPLan, db: AsyncSession = Depends(get_db)):
     for plan in our_plans:
         result["plans"].append({'plan_id': plan.plan_id,
                                 'buy_time': datetime.fromtimestamp(plan.buy_time).strftime("%d-%m-%Y"),
-                                'end_time': datetime.fromtimestamp(plan.end_time).strftime("%d-%m-%Y")
+                                'end_time': datetime.fromtimestamp(plan.end_time).strftime("%d-%m-%Y"),
+                                'price': "Будет число"
                                 })
     return result
