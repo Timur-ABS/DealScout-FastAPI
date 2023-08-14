@@ -38,7 +38,7 @@ async def all_history(ses: SeaMyPLan, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
     result = await db.execute(select(plans).where(plans.c.user_id == session_in_db.user_id))
     our_plans = result.fetchall()
-    result = {}
+    result = {"plans": []}
     for plan in our_plans:
         result["plans"].append({'plan_id': plan.plan_id,
                                 'buy_time': datetime.fromtimestamp(plan.buy_time.time_stamp_day).strftime("%d-%m-%Y"),
