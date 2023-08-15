@@ -54,7 +54,7 @@ async def sea_my_plans(ses: SeaMyPLan, db: AsyncSession = Depends(get_db)):
                                                        plans.c.end_time > int(time.time()))))
 
     our_plans = result.fetchall()
-    result = {}
+    result = {"plans": []}
     for plan in our_plans:
         result["plans"].append({'plan_id': plan.plan_id})
     return result
