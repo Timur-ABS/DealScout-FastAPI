@@ -88,6 +88,14 @@ async def read_user(ses: str, db: AsyncSession = Depends(get_db)):
         return data
 
 
+@router.get("/session_in_db/{ses}")
+async def session_in_db(ses: str, db: AsyncSession = Depends(get_db)):
+    session_in_db = await check_session(db=db, session=ses)
+    if not session_in_db:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+    return {'message': True}
+
+
 @router.post("/registration", response_model=Dict[str, str], status_code=status.HTTP_201_CREATED)
 async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     # Check if a user with the given login or email already exists
