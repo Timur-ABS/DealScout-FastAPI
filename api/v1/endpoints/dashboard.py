@@ -60,11 +60,8 @@ async def sea_my_plans(ses: SeaMyPLan, db: AsyncSession = Depends(get_db)):
     return result
 
 
-@router.post("/processed_goods")
-async def sea_my_plans(ses: SeaMyPLan, db: AsyncSession = Depends(get_db)):
-    session_in_db = await check_session(db=db, session=ses.session)
-    if not session_in_db:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+@router.get("/processed_goods")
+async def sea_my_plans():
     return {
         "Electronics": "2.5K",
         "Clothing": "3.4K",
