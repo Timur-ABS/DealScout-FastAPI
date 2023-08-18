@@ -63,15 +63,27 @@ async def sea_my_plans(ses: SeaMyPLan, db: AsyncSession = Depends(get_db)):
 @router.get("/processed_goods")
 async def sea_my_plans():
     return {
-        "Electronics": "2.5K",
-        "Clothing": "3.4K",
-        "Home & Kitchen": "4.1K",
-        "Toys & Games": "1.9K",
-        "Beauty & Personal Care": "2.8K",
-        "Books": "3.2K",
-        "Sports & Outdoors": "2.7K",
-        "Automotive": "1.6K",
-        "Other": "3.3K"
+        "sea": {"Electronics": "2.5K",
+                "Clothing": "3.4K",
+                "Home & Kitchen": "4.1K",
+                "Toys & Games": "1.9K",
+                "Beauty & Personal Care": "2.8K",
+                "Books": "3.2K",
+                "Sports & Outdoors": "2.7K",
+                "Automotive": "1.6K",
+                "Other": "3.3K"
+                },
+        "calcul": {
+            "Electronics": "2517",
+            "Clothing": "3420",
+            "Home & Kitchen": "4123",
+            "Toys & Games": "1934",
+            "Beauty & Personal Care": "2812",
+            "Books": "3219",
+            "Sports & Outdoors": "2738",
+            "Automotive": "1632",
+            "Other": "3356"
+        }
     }
 
 
